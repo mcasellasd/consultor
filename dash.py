@@ -143,14 +143,17 @@ def consultar_openai(prompt, data):
     Respon aquesta consulta:
     {prompt}
     """
-    resposta = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "Ets un assistent que ajuda amb l'anàlisi de dades."},
-            {"role": "user", "content": complet_prompt}
-        ]
-    )
-    return resposta["choices"][0]["message"]["content"]
+    try:
+        resposta = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # Assegura't que estàs utilitzant un model suportat
+            messages=[
+                {"role": "system", "content": "Ets un assistent que ajuda amb l'anàlisi de dades."},
+                {"role": "user", "content": complet_prompt}
+            ]
+        )
+        return resposta["choices"][0]["message"]["content"]
+    except Exception as e:
+        raise RuntimeError(f"Error amb l'API d'OpenAI: {str(e)}")
 
 # Títol de l'aplicació
 st.title("Distribució dels Fons d'Inversió")

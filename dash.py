@@ -100,7 +100,7 @@ st.title("Distribució dels Fons d'Inversió")
 st.subheader("Xat amb el teu Assessor")
 pregunta = st.text_input("Fes una pregunta sobre els fons:", key="chat_input")
 
-if st.button("Envia"):
+if st.button("Envia", key="enviar_xat"):
     if pregunta:
         if not filtered_df.empty:
             resposta = consultar_openai(pregunta, filtered_df)

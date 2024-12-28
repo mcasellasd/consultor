@@ -42,66 +42,6 @@ data = {
     ],
     "Nivell de Risc": [
         3, 3, 5, 6, 6, 6, 5, 6, 5, 4, 3, 6, 6, 6, 5, 5, 0,
-    ],
-    "Empreses Principals": [
-        "DWS ESG Money Market, Swedbank AB, BNP Paribas Cardif",
-        "Germany Federal Bonds, JPMorgan, MSD Netherlands",
-        "Flexible Allocation (sense posicions fixes)",
-        "Apple, Microsoft, Amazon",
-        "Apple, NVIDIA, Samsung",
-        "Toyota, Sony, Nintendo",
-        "Alphabet, Roche, Microsoft",
-        "UnitedHealth, Eli Lilly, AbbVie",
-        "Apple, Microsoft, Amazon",
-        "Tesla, Alphabet, Roche",
-        "No disponible",
-        "UnitedHealth, Johnson & Johnson, Pfizer",
-        "Apple, Microsoft, Alphabet",
-        "Tencent, Samsung, Alibaba",
-        "Amazon, Tesla, Roche",
-        "Flexible Allocation (sense posicions fixes)",
-        "N/D"
-    ],
-    "Distribució Geogràfica": [
-        "Eurozona: 81.31%, Efectiu: 17.01%",
-        "Eurozona: 87.83%, Efectiu: 9.85%",
-        "Global: 100%",
-        "Estats Units: 100%",
-        "Global: 100%",
-        "Japó: 100%",
-        "Global: 100%",
-        "Estats Units: 76.86%, Eurozona: 17.44%",
-        "Estats Units: 100%",
-        "Global: 100%",
-        "Eurozona: 100%",
-        "Estats Units: 100%",
-        "Global: 100%",
-        "Mercats Emergents: 100%",
-        "Global: 100%",
-        "Global: 100%",
-        "Pla de pensions: 100%"
-    ],
-    "Distribució Actius": [
-        "Renda Fixa: 70%, Efectiu: 30%",
-        "Renda Fixa: 87.83%, Efectiu: 9.85%",
-        "Multiactiu (Flexible)",
-        "Renda Variable: 100%",
-        "Tecnologia: 60%, Comunicacions: 30%",
-        "Renda Variable (Japó): 100%",
-        "Tecnologia: 40%, Salut: 35%, Energia: 25%",
-        "Salut: 100%",
-        "Renda Variable: 100%",
-        "Tecnologia: 50%, Salut: 30%, Consum: 20%",
-        "Renda Fixa: 70%, Altres: 30%",
-        "Salut: 100%",
-        "Renda Variable Global: 100%",
-        "Mercats Emergents: 100%",
-        "Renda Variable Global: 100%",
-        "Renda Variable Global: 100%",
-        "Pla de pensions: 100%"
-    ],
-    "Comissions (%)": [
-        0.75, 0.85, 1.5, 1.0, 1.2, 0.9, 1.1, 1.4, 1.0, 1.3, 0.7, 1.5, 0.9, 1.2, 0.95, 1.0, 0
     ]
 }
 
@@ -117,7 +57,14 @@ def calcular_distribucio(data):
 # Funció per interactuar amb OpenAI
 def consultar_openai(prompt, data):
     data_text = data.to_string(index=False)
-    complet_prompt = f"Tens accés a les següents dades sobre fons d'inversió:\n\n{data_text}\n\nRespon aquesta consulta:\n{prompt}"
+    complet_prompt = f"""
+    Tens accés a les següents dades sobre fons d'inversió:
+    
+    {data_text}
+    
+    Respon aquesta consulta:
+    {prompt}
+    """
     resposta = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -127,10 +74,20 @@ def consultar_openai(prompt, data):
     )
     return resposta["choices"][0]["message"]["content"]
 
-# Filtres de la barra lateral
+# Barra lateral: filtres
 st.sidebar.subheader("Filtres")
-selected_gestores = st.sidebar.multiselect("Selecciona Gestores:", options=df["Gestora"].unique(), default=df["Gestora"].unique())
-selected_fons = st.sidebar.multiselect("Selecciona Fons:", options=df["Nom del Fons"].unique(), default=df["Nom del Fons"].unique())
+selected_gestores = st.sidebar.multiselect(
+    "Selecciona Gestores:", 
+    options=df["Gestora"].unique(), 
+    default=df["Gestora"].unique(),
+    key="filter_gestores"
+)
+selected_fons = st.sidebar.multiselect(
+    "Selecciona Fons:", 
+    options=df["Nom del Fons"].unique(), 
+    default=df["Nom del Fons"].unique(),
+    key="filter_fons"
+)
 
 # Aplicar filtres
 filtered_df = df[df["Gestora"].isin(selected_gestores)]
@@ -141,7 +98,7 @@ st.title("Distribució dels Fons d'Inversió")
 
 # Mostrar xat amb OpenAI
 st.subheader("Xat amb el teu Assessor")
-pregunta = st.text_input("Fes una pregunta sobre els fons:")
+pregunta = st.text_input("Fes una pregunta sobre els fons:", key="chat_input")
 
 if st.button("Envia"):
     if pregunta:
@@ -171,12 +128,24 @@ if not filtered_df.empty:
 
     # Gràfic de barres del nivell de risc
     st.subheader("Comparativa de Nivell de Risc")
-    fig_risc = px.bar(filtered_df, x="Nom del Fons", y="Nivell de Risc", color="Gestora", title="Nivell de Risc per Fons")
+    fig_risc = px.bar(
+        filtered_df, 
+        x="Nom del Fons", 
+        y="Nivell de Risc", 
+        color="Gestora", 
+        title="Nivell de Risc per Fons"
+    )
     st.plotly_chart(fig_risc)
 
     # Gràfic de barres de rendibilitat
     st.subheader("Comparativa de Rendibilitat (%)")
-    fig_rendibilitat = px.bar(filtered_df, x="Nom del Fons", y="Rendibilitat (%)", color="Gestora", title="Rendibilitat per Fons")
+    fig_rendibilitat = px.bar(
+        filtered_df, 
+        x="Nom del Fons", 
+        y="Rendibilitat (%)", 
+        color="Gestora", 
+        title="Rendibilitat per Fons"
+    )
     st.plotly_chart(fig_rendibilitat)
 else:
     st.warning("No hi ha dades disponibles amb els filtres aplicats.")

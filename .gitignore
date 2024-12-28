@@ -1,0 +1,6 @@
+# Ignorar el fitxer .env
+.env
+
+# Ignorar fitxers de configuració temporals
+*.log
+*.bak

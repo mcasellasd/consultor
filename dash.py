@@ -114,17 +114,10 @@ def calcular_distribucio(data):
     data["Percentatge"] = data["pes cartera"] / total_pes * 100
     return data
 
-# Funció per consultar OpenAI
+# Funció per interactuar amb OpenAI
 def consultar_openai(prompt, data):
     data_text = data.to_string(index=False)
-    complet_prompt = f"""
-    Tens accés a les següents dades sobre fons d'inversió:
-
-    {data_text}
-
-    Respon aquesta consulta:
-    {prompt}
-    """
+    complet_prompt = f"Tens accés a les següents dades sobre fons d'inversió:\n\n{data_text}\n\nRespon aquesta consulta:\n{prompt}"
     resposta = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -133,49 +126,6 @@ def consultar_openai(prompt, data):
         ]
     )
     return resposta["choices"][0]["message"]["content"]
-
-# Filtres de la barra lateral
-st.sidebar.subheader("Filtres")
-selected_gestores = st.sidebar.multiselect("Selecciona Gestores:", options=df["Gestora"].unique(), default=df["Gestora"].unique())
-selected_fons = st.sidebar.multiselect("Selecciona Fons:", options=df["Nom del Fons"].unique(), default=df["Nom del Fons"].unique())
-
-# Aplicar filtres
-filtered_df = df[df["Gestora"].isin(selected_gestores)]
-filtered_df = filtered_df[filtered_df["Nom del Fons"].isin(selected_fons)]
-
-# Mostrar dades filtrades
-st.title("Distribució dels Fons d'Inversió")
-if not filtered_df.empty:
-    st.subheader("Fons Filtrats")
-    st.dataframe(filtered_df)
-else:
-    st.warning("No hi ha dades disponibles amb els filtres aplicats.")
-
-# Xat amb OpenAI
-st.subheader("Xat amb el teu Assessor")
-pregunta = st.text_input("Fes una pregunta sobre els fons:")
-
-if st.button("Envia"):
-    if pregunta:
-        if not filtered_df.empty:
-            resposta = consultar_openai(pregunta, filtered_df)
-            st.write("### Resposta:")
-            st.write(resposta)
-        else:
-            st.warning("No hi ha dades disponibles amb els filtres aplicats.")
-    else:
-        st.warning("Introdueix una pregunta primer.")
-
-# Visualitzacions
-if not filtered_df.empty:
-    # Gràfic de distribució
-    st.subheader("Distribució dels Fons")
-    fig, ax = plt.subplots(figsize=(8, 8))
-    filtered_df["Percentatge"] = filtered_df["pes cartera"] / filtered_df["pes cartera"].sum() * 100
-    ax.pie(filtered_df["Percentatge"], labels=filtered_df["Nom del Fons"], autopct="%1.1f%%", startangle=140)
-    ax.set_title("Distribució dels Fons en la Cartera")
-    st.pyplot(fig)
-
 
 # Filtres de la barra lateral
 st.sidebar.subheader("Filtres")

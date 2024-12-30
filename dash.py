@@ -184,11 +184,6 @@ selected_gestores = st.sidebar.multiselect(
     options=df["Gestora"].unique(),
     default=df["Gestora"].unique()
 )
-selected_fons = st.sidebar.multiselect(
-    "Posa o treu un fons:",
-    options=df["Nom del Fons"].unique(),
-    default=df["Nom del Fons"].unique()
-)
 
 # Aplicar filtres
 filtered_df = df[df["Gestora"].isin(selected_gestores)]

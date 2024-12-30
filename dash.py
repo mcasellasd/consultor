@@ -76,7 +76,39 @@ filtered_df = df[df["Gestora"].isin(selected_gestores)]
 st.subheader("Dades Filtrades")
 st.dataframe(filtered_df)
 
-# La resta del codi no ha de fer referència a 'selected_fons'
+# Caixa de preguntes interactives amb OpenAI
+st.subheader("Xat amb el teu Assessor")
+pregunta = st.text_input("Fes una pregunta sobre els fons, distribució de la cartera, etc.:")
+if st.button("Consulta"):
+    # Comprovar si s'ha introduït una pregunta
+    if not pregunta:
+        st.warning("Si us plau, introdueix una pregunta abans d'enviar.")
+    elif filtered_df.empty:
+        st.warning("No hi ha dades disponibles amb els filtres aplicats.")
+    else:
+        try:
+            # Generar resposta amb OpenAI
+            data_text = filtered_df.to_string(index=False)
+            complet_prompt = f"""
+            Tens accés a les següents dades sobre fons d'inversió:
+
+            {data_text}
+
+            Respon aquesta consulta:
+            {pregunta}
+            """
+            resposta = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Ets un assistent que ajuda amb l'anàlisi de dades."},
+                    {"role": "user", "content": complet_prompt}
+                ]
+            )
+            resposta_text = resposta["choices"][0]["message"]["content"]
+            st.write("### Resposta:")
+            st.write(resposta_text)
+        except Exception as e:
+            st.error(f"Hi ha hagut un error processant la resposta: {str(e)}")
 
 # Funció per calcular la valoració
 def calcular_valoracio(data):
